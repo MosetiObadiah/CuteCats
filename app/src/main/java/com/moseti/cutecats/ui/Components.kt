@@ -1,91 +1,79 @@
 package com.moseti.cutecats.ui
 
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.size.Size
 import com.moseti.cutecats.R
+import com.moseti.cutecats.network.CatImage
 
 @Composable
-fun CustomFilterChip(label: String) {
-    var selected by remember { mutableStateOf(false) }
-
-    FilterChip(
-        onClick = { selected = !selected },
-        label = {
-            Text(label)
-        },
-        selected = selected,
-        leadingIcon = if (selected) {
-            {
-                Icon(
-                    imageVector = Icons.Filled.Done,
-                    contentDescription = "Done icon",
-                    modifier = Modifier.size(FilterChipDefaults.IconSize)
-                )
-            }
-        } else {
-            null
-        },
-        modifier = Modifier.padding(end = 3.dp)
-    )
-}
-
-@Composable
-fun CatCard(imageUrl: String) {
+fun CatCard(
+    catImage: CatImage,
+    isFavorite: Boolean,
+    onFavoriteClick: (CatImage) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
-        modifier = Modifier
-            .padding(2.dp)
+        modifier = modifier
     ) {
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = "Translated description of what the image contains",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            placeholder = painterResource(R.drawable.image_file_svgrepo_com__1_),
-            error = painterResource(R.drawable.error_svgrepo_com)
-        )
+        val context = LocalContext.current
 
-//        IconButton(
-//            onClick = {}
-//        ) {
-//            Icon(
-//                imageVector = Icons.Outlined.ThumbUp,
-//                contentDescription = "Localized description"
-//            )
-//        }
-//
-//        IconButton(
-//            onClick = {}
-//        ) {
-//            Icon(
-//                imageVector = Icons.Outlined.Favorite,
-//                contentDescription = "Localized description"
-//            )
-//        }
+        Box {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(catImage.url)
+                    .crossfade(true) // Smooth transition when image loads
+                    .size(Size(300, 300)) // Approximate size to reduce memory usage
+                    .memoryCachePolicy(CachePolicy.ENABLED) // memory caching
+                    .diskCachePolicy(CachePolicy.ENABLED) // disk caching
+                    .build(),
+                contentDescription = "Cat image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(0.74f) // consistent aspect ratio
+                    .background(Color.Gray), // Debug background
+                placeholder = painterResource(R.drawable.icons8_cat_100),
+                error = painterResource(R.drawable.error_svgrepo_com),
+                onError = { Log.e("CatCard", "Failed to load image: ${catImage.url}") }
+            )
+
+            Icon(
+                imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                contentDescription = "Favorite",
+                tint = if (isFavorite) Color.Red else Color.White,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .clickable { onFavoriteClick(catImage) }
+            )
+        }
     }
 }

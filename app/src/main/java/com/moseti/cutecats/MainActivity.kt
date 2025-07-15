@@ -2,12 +2,14 @@ package com.moseti.cutecats
 
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresExtension
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -41,10 +43,13 @@ import com.moseti.cutecats.ui.screens.HomePage
 import com.moseti.cutecats.ui.screens.UploadsPage
 import com.moseti.cutecats.ui.theme.CuteCatsTheme
 import com.moseti.cutecats.ui.viewmodels.CatViewModel
+import com.moseti.cutecats.ui.viewmodels.CatViewModelFactory
 import kotlinx.serialization.Serializable
 
 class MainActivity : ComponentActivity() {
-    private val catViewModel : CatViewModel by viewModels()
+    private val catViewModel: CatViewModel by viewModels {
+        CatViewModelFactory((application as CatApplication).repository)
+    }
 
     @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
     @OptIn(ExperimentalMaterial3Api::class)
@@ -91,6 +96,9 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .wrapContentWidth(Alignment.Start)
+                                        .clickable {
+                                            Toast.makeText(this, "Made by Moseti", Toast.LENGTH_SHORT).show()
+                                        }
                                 )
                             },
                             scrollBehavior = scrollBehavior,

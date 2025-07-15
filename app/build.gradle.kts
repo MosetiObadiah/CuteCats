@@ -6,6 +6,8 @@ plugins {
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 
     kotlin("plugin.serialization") version "2.0.21"
+
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -59,6 +61,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -93,4 +96,11 @@ dependencies {
 
     // coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+
+    val room_version = "2.7.2"
+    implementation("androidx.room:room-runtime:${room_version}")
+    ksp("androidx.room:room-compiler:2.5.0")
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:${room_version}")
+
 }

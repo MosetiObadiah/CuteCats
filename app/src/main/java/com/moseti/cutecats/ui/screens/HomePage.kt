@@ -25,13 +25,15 @@ import com.moseti.cutecats.ui.viewmodels.CatViewModel
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
 fun HomePage(catViewModel: CatViewModel, modifier: Modifier = Modifier) {
+    val gridStaggeredState = rememberLazyStaggeredGridState()
 
     LaunchedEffect(Unit) {
-        catViewModel.loadNextPage()
+        if ((catViewModel.catsUiState as? CatUiState.Success)?.photos.isNullOrEmpty()) {
+            catViewModel.loadNextPage()
+        }
     }
 
     val catImages = catViewModel.catImages
-    val gridStaggeredState = rememberLazyStaggeredGridState()
 
     Column(
         modifier = modifier.fillMaxSize()
@@ -54,11 +56,15 @@ fun HomePage(catViewModel: CatViewModel, modifier: Modifier = Modifier) {
                     state = gridStaggeredState,
                     columns = StaggeredGridCells.Adaptive(190.dp),
                     verticalItemSpacing = 4.dp,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
                     content = {
                         items(catImages) { catImage ->
                             Log.d("CatCard", "Loading image: ${catImage.url}")
-                            CatCard(catImage.url)
+                            CatCard(
+                                catImage = catImage,
+                                isFavorite = catViewModel.isFavorite(catImage),
+                                onFavoriteClick = { catViewModel.toggleFavorite(it) }
+                            )
                         }
                         item {
                             if (catViewModel.catImages.isNotEmpty() && !catViewModel.isLoading) {
