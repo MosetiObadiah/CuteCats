@@ -30,9 +30,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.moseti.cutecats.R
+import com.moseti.cutecats.ui.viewmodels.CatViewModel
 
 @Composable
-fun SettingsPage(modifier: Modifier =  Modifier) {
+fun SettingsScreen(catViewModel: CatViewModel, modifier: Modifier = Modifier) {
     val state = LazyListState()
 
     LazyColumn (

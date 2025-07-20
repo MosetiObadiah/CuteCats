@@ -41,33 +41,27 @@ import com.moseti.cutecats.R
 import com.moseti.cutecats.ui.viewmodels.CatViewModel
 
 @Composable
-fun UploadsPage(
-    catViewModel: CatViewModel, // ViewModel is kept for future use (e.g., calling an upload function)
+fun UploadsScreen(
+    catViewModel: CatViewModel,
     modifier: Modifier = Modifier
 ) {
-    // This state will hold the URI of the selected image.
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // This is the modern way to handle activity results.
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
-            // The URI of the selected image is passed here.
             selectedImageUri = uri
         }
     )
 
     val context = LocalContext.current
 
-    // The UI will change depending on whether an image has been selected.
     Column(
         modifier = modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         if (selectedImageUri == null) {
-            // --- INITIAL VIEW ---
-            // This view is shown when no image is selected yet.
             Icon(
                 painter = painterResource(R.drawable.baseline_cloud_upload_24),
                 contentDescription = "Upload Icon",
@@ -93,17 +87,14 @@ fun UploadsPage(
                 Text("Select Image from Gallery")
             }
         } else {
-            // --- PREVIEW VIEW ---
-            // This view is shown after an image has been selected.
             Text("Image Preview", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 1. Custom Preview Card
             UploadPreviewCard(uri = selectedImageUri!!)
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 2. AI Confirmation Button
+            // ai verify btn
             Button(
                 onClick = {
                     // TODO: Implement your AI model check here.
@@ -116,15 +107,12 @@ fun UploadsPage(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 3. Row for Cancel and Submit Buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // Cancel Button
                 OutlinedButton(
                     onClick = {
-                        // Clear everything by setting the URI back to null
                         selectedImageUri = null
                     },
                     modifier = Modifier.weight(1f)
@@ -134,14 +122,11 @@ fun UploadsPage(
 
                 Spacer(modifier = Modifier.width(16.dp))
 
-                // Submit Button
                 Button(
                     onClick = {
-                        // TODO: Implement your upload logic here.
-                        // You would take selectedImageUri and pass it to a function
-                        // in your ViewModel, e.g., catViewModel.uploadImage(selectedImageUri!!)
+                        // TODO: Implement upload logic
                         Toast.makeText(context, "Uploading... (Not really!)", Toast.LENGTH_SHORT).show()
-                        selectedImageUri = null // Go back to initial state after "uploading"
+                        selectedImageUri = null
                     },
                     modifier = Modifier.weight(1f)
                 ) {
@@ -168,15 +153,12 @@ private fun UploadPreviewCard(uri: Uri) {
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            // AsyncImage from Coil is perfect for loading the image from a URI
             AsyncImage(
                 model = uri,
                 contentDescription = "Selected image preview",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            // You could add a text overlay here if you wanted
-            // Text("Preview", color = Color.White, fontWeight = FontWeight.Bold)
         }
     }
 }

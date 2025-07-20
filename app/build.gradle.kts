@@ -8,6 +8,7 @@ plugins {
     kotlin("plugin.serialization") version "2.0.21"
 
     id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -49,6 +50,11 @@ android {
         propertiesFileName = "secrets.properties"
         defaultPropertiesFileName = "local.defaults.properties"
     }
+
+    // see details about deprecation warnings
+//    tasks.withType<JavaCompile>().configureEach {
+//        options.compilerArgs.add("-Xlint:deprecation")
+//    }
 }
 
 dependencies {
@@ -101,6 +107,11 @@ dependencies {
     val room_version = "2.7.2"
     implementation("androidx.room:room-runtime:${room_version}")
     ksp("androidx.room:room-compiler:2.5.0")
+
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation("androidx.room:room-ktx:${room_version}")
+
+    implementation("com.google.dagger:hilt-android:2.56.2")
+    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 }

@@ -1,13 +1,12 @@
 package com.moseti.cutecats
 
 import android.app.Application
-import com.moseti.cutecats.db.CatDatabase
-import com.moseti.cutecats.network.CatApiService
-import com.moseti.cutecats.network.CatRepository
-import com.moseti.cutecats.network.RetrofitClient
+import dagger.hilt.android.HiltAndroidApp
 
-class CatApplication : Application() {
-    private val database by lazy { CatDatabase.getDatabase(this) }
-    private val apiService by lazy { RetrofitClient.retrofit.create(CatApiService::class.java) }
-    val repository by lazy { CatRepository(apiService, database.catImageDao()) }
-}
+/**
+ * The Application class, annotated with @HiltAndroidApp to trigger Hilt's code generation.
+ * This sets up the dependency injection container for the entire application.
+ * All manual dependency creation has been moved to the `di.AppModule`.
+ */
+@HiltAndroidApp
+class CatApplication : Application()

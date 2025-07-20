@@ -1,57 +1,37 @@
 package com.moseti.cutecats
 
-import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
-import androidx.annotation.DrawableRes
-import androidx.annotation.RequiresExtension
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.moseti.cutecats.ui.screens.FavoritesPage
-import com.moseti.cutecats.ui.screens.HomePage
-import com.moseti.cutecats.ui.screens.SettingsPage
-import com.moseti.cutecats.ui.screens.UploadsPage
+import com.moseti.cutecats.navigation.AppNavHost
+import com.moseti.cutecats.navigation.Settings
 import com.moseti.cutecats.ui.theme.CuteCatsTheme
-import com.moseti.cutecats.ui.viewmodels.CatViewModel
-import com.moseti.cutecats.ui.viewmodels.CatViewModelFactory
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 
+@AndroidEntryPoint // This enables field injection in this activity.
 class MainActivity : ComponentActivity() {
-    private val catViewModel: CatViewModel by viewModels {
-        CatViewModelFactory((application as CatApplication).repository)
-    }
 
-    @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,156 +39,101 @@ class MainActivity : ComponentActivity() {
         setContent {
             CuteCatsTheme {
                 val navController = rememberNavController()
-                val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-                val navDestination  = listOf(Home, Uploads, Favorites)
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination?.route
-                val selectedItemIndex = navDestination.indexOfFirst { it.toString() == currentDestination }
-
-                val items = listOf(
-                    BottomNavigationItem(
-                        title = "Home",
-                        selectedIconResId = R.drawable.home_filled_smile_svgrepo_com,
-                        unselectedIconResId = R.drawable.home_outlined_smile_svgrepo_com
-
-                    ),
-                    BottomNavigationItem(
-                        title = "Uploads",
-                        selectedIconResId = R.drawable.upload_filled_svgrepo_com,
-                        unselectedIconResId = R.drawable.upload_outlined_svgrepo_com__1_
-                    ),
-                    BottomNavigationItem(
-                        title = "Favorites",
-                        selectedIconResId = R.drawable.favorite_filled_svgrepo_com,
-                        unselectedIconResId = R.drawable.favorite_outlined_svgrepo_com
+                // List of top-level navigation items
+                val navItems = remember {
+                    listOf(
+                        BottomNavItem.Home,
+                        BottomNavItem.Uploads,
+                        BottomNavItem.Favorites
                     )
-                )
+                }
 
                 Scaffold(
                     topBar = {
-                        // TODO add search bar
                         TopAppBar(
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                titleContentColor = MaterialTheme.colorScheme.primary,
-                            ),
-                            title = {
-                                Text(
-                                    text = "Cute Cats",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentWidth(Alignment.Start)
-                                        .clickable {
-                                            Toast.makeText(this, "Made by Moseti", Toast.LENGTH_SHORT).show()
-                                        }
-                                )
-                            },
-                            scrollBehavior = scrollBehavior,
+                            title = { Text("CuteCats") },
                             actions = {
-                                IconButton(
-                                    onClick = {
-                                        navController.navigate(Settings) {
-                                            launchSingleTop = true
-                                            popUpTo(navController.graph.startDestinationId) {
-                                                saveState = true
-                                            }
-                                            restoreState = true
-                                        }
-                                    }
-                                ) {
+                                IconButton(onClick = { /* TODO: Implement search */ }) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Settings,
-                                        contentDescription = "Localized description"
+                                        painter = painterResource(id = R.drawable.outline_search_24),
+                                        contentDescription = "Search"
                                     )
                                 }
-
-                                IconButton(
-                                    onClick = {}
-                                ) {
+                                IconButton(onClick = { navController.navigate(Settings) }) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Search,
-                                        contentDescription = "Localized description"
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = {}
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.baseline_filter_list_24),
-                                        contentDescription = "Localized description"
+                                        painter = painterResource(id = R.drawable.outline_settings_24),
+                                        contentDescription = "Settings"
                                     )
                                 }
                             }
                         )
                     },
-                    modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         NavigationBar {
-                            items.forEachIndexed { index, item ->
-                                val isSelected = index == selectedItemIndex
+                            val navBackStackEntry by navController.currentBackStackEntryAsState()
+                            val currentDestination = navBackStackEntry?.destination
+
+                            navItems.forEach { item ->
+                                val isSelected = currentDestination?.hierarchy?.any { it.route == item.route.toString() } == true
                                 NavigationBarItem(
-                                    selected = selectedItemIndex == index,
-                                    onClick = {
-                                        navController.navigate(navDestination[index]) {
-                                            launchSingleTop = true
-                                            popUpTo(navController.graph.startDestinationId) {
-                                                saveState = true
-                                            }
-                                            restoreState = true
-                                        }
-                                    },
-                                    label = {
-                                        Text(text = item.title)
-                                    },
-                                    alwaysShowLabel = false,
                                     icon = {
                                         Icon(
                                             modifier = Modifier.size(32.dp),
-                                            painter = painterResource(id = if (isSelected) item.selectedIconResId else item.unselectedIconResId),
-                                            contentDescription = item.title
+                                            painter = painterResource(id = if (isSelected) item.selectedIcon else item.unselectedIcon),
+                                            contentDescription = stringResource(id = item.titleRes)
                                         )
+                                    },
+                                    label = { Text(stringResource(id = item.titleRes)) },
+                                    selected = isSelected,
+                                    onClick = {
+                                        navController.navigate(item.route) {
+                                            // Pop up to the start destination of the graph to avoid building up a large back stack
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            // Avoid multiple copies of the same destination when re-selecting the same item
+                                            launchSingleTop = true
+                                            // Restore state when re-selecting a previously selected item
+                                            restoreState = true
+                                        }
                                     }
                                 )
                             }
                         }
                     }
                 ) { innerPadding ->
-                    NavHost(navController = navController, startDestination = Home) {
-                        composable<Home> {
-                            HomePage(catViewModel, Modifier.padding(innerPadding))
-                        }
-                        composable<Favorites> {
-                            FavoritesPage(catViewModel, Modifier.padding(innerPadding))
-                        }
-                        composable<Uploads> {
-                            UploadsPage(catViewModel, Modifier.padding(innerPadding))
-                        }
-                        composable<Settings> {
-                            SettingsPage(Modifier.padding(innerPadding))
-                        }
-                    }
+                    // Our centralized navigation logic is called here.
+                    AppNavHost(navController = navController, paddingValues = innerPadding)
                 }
             }
         }
     }
 }
 
-data class BottomNavigationItem(
-    val title: String,
-    @DrawableRes val selectedIconResId: Int,
-    @DrawableRes val unselectedIconResId: Int
-)
-
-@Serializable
-object Home
-
-@Serializable
-object Favorites
-
-@Serializable
-object Uploads
-
-@Serializable
-object Settings
+// A sealed class is a great way to define bottom navigation items for type safety.
+sealed class BottomNavItem(
+    val route: @Serializable Any,
+    val titleRes: Int,
+    val selectedIcon: Int,
+    val unselectedIcon: Int
+) {
+    data object Home : BottomNavItem(
+        route = com.moseti.cutecats.navigation.Home,
+        titleRes = R.string.bottom_nav_home,
+        selectedIcon = R.drawable.home_filled_smile_svgrepo_com,
+        unselectedIcon = R.drawable.home_outlined_smile_svgrepo_com
+    )
+    data object Uploads : BottomNavItem(
+        route = com.moseti.cutecats.navigation.Uploads,
+        titleRes = R.string.bottom_nav_uploads,
+        selectedIcon = R.drawable.upload_filled_svgrepo_com,
+        unselectedIcon = R.drawable.upload_outlined_svgrepo_com__1_
+    )
+    data object Favorites : BottomNavItem(
+        route = com.moseti.cutecats.navigation.Favorites,
+        titleRes = R.string.bottom_nav_favorites,
+        selectedIcon = R.drawable.favorite_filled_svgrepo_com,
+        unselectedIcon = R.drawable.favorite_outlined_svgrepo_com
+    )
+}

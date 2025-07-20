@@ -1,7 +1,5 @@
 package com.moseti.cutecats.ui.screens
 
-import android.os.Build
-import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,16 +14,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.moseti.cutecats.ui.CatCard
+import com.moseti.cutecats.data.remote.dto.CatImage
+import com.moseti.cutecats.ui.components.CatCard
 import com.moseti.cutecats.ui.viewmodels.CatViewModel
 
-@RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
-fun FavoritesPage(
+fun FavoritesScreen(
     catViewModel: CatViewModel,
+    onCatClicked: (CatImage) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Collect the StateFlow from the ViewModel. This comes directly from the database.
+    // viewModel provides a direct flow of favorite cats from the database.
     val favoriteCats by catViewModel.favoriteCats.collectAsState()
 
     if (favoriteCats.isEmpty()) {
@@ -34,21 +33,18 @@ fun FavoritesPage(
         }
     } else {
         LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Adaptive(190.dp),
+            columns = StaggeredGridCells.Adaptive(180.dp),
             modifier = modifier.fillMaxSize(),
-            contentPadding = PaddingValues(4.dp),
-            verticalItemSpacing = 4.dp,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            contentPadding = PaddingValues(8.dp),
+            verticalItemSpacing = 8.dp,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(favoriteCats, key = { it.id }) { cat ->
-                // The CatCard here doesn't need the like button, or it could be used for un-liking
                 CatCard(
-                    catViewModel,
                     catImage = cat,
-                    isFavorite = true,
-                    onFavoriteClick = {
-                        catViewModel.toggleFavorite(it)
-                    }
+                    isFavorite = true, // All cats on this screen are favorites
+                    onFavoriteClick = { catViewModel.toggleFavorite(it) }, // This will remove it
+                    onCardClick = { onCatClicked(it) }
                 )
             }
         }
