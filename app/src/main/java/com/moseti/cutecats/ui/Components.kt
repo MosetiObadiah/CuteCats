@@ -1,6 +1,8 @@
 package com.moseti.cutecats.ui
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresExtension
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -29,9 +31,12 @@ import coil3.request.crossfade
 import coil3.size.Size
 import com.moseti.cutecats.R
 import com.moseti.cutecats.network.CatImage
+import com.moseti.cutecats.ui.viewmodels.CatViewModel
 
+@RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
 fun CatCard(
+    catViewModel: CatViewModel,
     catImage: CatImage,
     isFavorite: Boolean,
     onFavoriteClick: (CatImage) -> Unit,
@@ -41,7 +46,13 @@ fun CatCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
-        modifier = modifier
+        modifier = modifier.clickable(
+            enabled = true,
+            onClickLabel = "Like the cat",
+            onClick = {
+                onFavoriteClick(catImage)
+            }
+        )
     ) {
         val context = LocalContext.current
 
@@ -66,11 +77,11 @@ fun CatCard(
             )
 
             Icon(
-                imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                imageVector = if (catViewModel.isFavorite(catImage)) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = "Favorite",
                 tint = if (isFavorite) Color.Red else Color.White,
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
+                    .align(Alignment.BottomEnd)
                     .padding(8.dp)
                     .clickable { onFavoriteClick(catImage) }
             )

@@ -43,9 +43,12 @@ fun FavoritesPage(
             items(favoriteCats, key = { it.id }) { cat ->
                 // The CatCard here doesn't need the like button, or it could be used for un-liking
                 CatCard(
+                    catViewModel,
                     catImage = cat,
-                    isFavorite = true, // All cats on this page are favorites
-                    onFavoriteClick = { /* Decide if you want to un-favorite from here */ }
+                    isFavorite = true,
+                    onFavoriteClick = {
+                        catViewModel.toggleFavorite(it)
+                    }
                 )
             }
         }

@@ -12,8 +12,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.moseti.cutecats.network.CatImage
 import com.moseti.cutecats.network.CatRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -31,6 +33,40 @@ class CatViewModel(private val repository: CatRepository) : ViewModel() {
     private val _networkCatImages = mutableStateListOf<CatImage>()
     val catImages: List<CatImage> get() = _networkCatImages
 
+    private val _favoriteIds = MutableStateFlow<Set<String>>(emptySet())
+    val favoriteIds = _favoriteIds.asStateFlow()
+    private val _sessionLikedIds = mutableSetOf<String>()
+
+    init {
+        viewModelScope.launch {
+            repository.favoriteCats.collect { dbFavorites ->
+                _sessionLikedIds.addAll(dbFavorites.map { it.id })
+                _favoriteIds.value = _sessionLikedIds.toSet() // Trigger state update
+            }
+        }
+    }
+
+    fun toggleFavorite(cat: CatImage) {
+        if (_sessionLikedIds.contains(cat.id)) {
+            _sessionLikedIds.remove(cat.id)
+        } else {
+            _sessionLikedIds.add(cat.id)
+        }
+
+        _favoriteIds.value = _sessionLikedIds.toSet()
+
+        viewModelScope.launch {
+            val currentFavorites = _networkCatImages.filter { it.id in _sessionLikedIds }
+            repository.saveFavorites(currentFavorites)
+        }
+
+        catsUiState = CatUiState.Success(_networkCatImages.toList())
+    }
+
+    fun isFavorite(cat: CatImage): Boolean {
+        return _favoriteIds.value.contains(cat.id)
+    }
+
     val favoriteCats: StateFlow<List<CatImage>> = repository.favoriteCats
         .stateIn(
             scope = viewModelScope,
@@ -38,36 +74,9 @@ class CatViewModel(private val repository: CatRepository) : ViewModel() {
             initialValue = emptyList()
         )
 
-    private val _sessionLikedIds = mutableSetOf<String>()
-
     private var currentPage = 0
     var isLoading = false
         private set
-
-    init {
-        // Pre-populate the session likes from the database on startup
-        viewModelScope.launch {
-            repository.favoriteCats.collect { dbFavorites ->
-                _sessionLikedIds.addAll(dbFavorites.map { it.id })
-            }
-        }
-    }
-
-    // Function to handle liking/unliking a photo
-    fun toggleFavorite(cat: CatImage) {
-        if (_sessionLikedIds.contains(cat.id)) {
-            _sessionLikedIds.remove(cat.id)
-        } else {
-            _sessionLikedIds.add(cat.id)
-        }
-        // Force a recomposition of the UI state to show the change
-        catsUiState = CatUiState.Success(_networkCatImages.toList()) // Create a new list instance
-    }
-
-    // Helper to check if a cat is liked in the current session
-    fun isFavorite(cat: CatImage): Boolean {
-        return _sessionLikedIds.contains(cat.id)
-    }
 
     // Fetch cat images from network
     fun loadNextPage() {

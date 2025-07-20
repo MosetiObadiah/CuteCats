@@ -15,8 +15,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.moseti.cutecats.ui.CatCard
 import com.moseti.cutecats.ui.viewmodels.CatUiState
@@ -24,8 +29,24 @@ import com.moseti.cutecats.ui.viewmodels.CatViewModel
 
 @RequiresExtension(extension = Build.VERSION_CODES.S, version = 7)
 @Composable
-fun HomePage(catViewModel: CatViewModel, modifier: Modifier = Modifier) {
+fun HomePage(
+    catViewModel: CatViewModel, modifier: Modifier = Modifier
+) {
     val gridStaggeredState = rememberLazyStaggeredGridState()
+    val favoriteIds by catViewModel.favoriteIds.collectAsState()
+
+    val windowInfo = LocalWindowInfo.current
+    val containerSizePx = windowInfo.containerSize
+
+    val containerDp: DpSize = with(LocalDensity.current) {
+        DpSize(
+            width = containerSizePx.width.toDp(),
+            height = containerSizePx.height.toDp()
+        )
+    }
+
+    val widthDp = containerDp.width / 3
+    val heightDp = containerDp.height
 
     LaunchedEffect(Unit) {
         if ((catViewModel.catsUiState as? CatUiState.Success)?.photos.isNullOrEmpty()) {
@@ -54,15 +75,16 @@ fun HomePage(catViewModel: CatViewModel, modifier: Modifier = Modifier) {
             is CatUiState.Success -> {
                 LazyVerticalStaggeredGrid(
                     state = gridStaggeredState,
-                    columns = StaggeredGridCells.Adaptive(190.dp),
+                    columns = StaggeredGridCells.Adaptive(widthDp),
                     verticalItemSpacing = 4.dp,
                     horizontalArrangement = Arrangement.spacedBy(3.dp),
                     content = {
                         items(catImages) { catImage ->
                             Log.d("CatCard", "Loading image: ${catImage.url}")
                             CatCard(
+                                catViewModel,
                                 catImage = catImage,
-                                isFavorite = catViewModel.isFavorite(catImage),
+                                isFavorite = favoriteIds.contains(catImage.id),
                                 onFavoriteClick = { catViewModel.toggleFavorite(it) }
                             )
                         }

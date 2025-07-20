@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,18 +29,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.moseti.cutecats.ui.screens.FavoritesPage
 import com.moseti.cutecats.ui.screens.HomePage
+import com.moseti.cutecats.ui.screens.SettingsPage
 import com.moseti.cutecats.ui.screens.UploadsPage
 import com.moseti.cutecats.ui.theme.CuteCatsTheme
 import com.moseti.cutecats.ui.viewmodels.CatViewModel
@@ -61,8 +61,11 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-                var selectedItemIndex by remember { mutableIntStateOf(0) }
                 val navDestination  = listOf(Home, Uploads, Favorites)
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination?.route
+                val selectedItemIndex = navDestination.indexOfFirst { it.toString() == currentDestination }
+
                 val items = listOf(
                     BottomNavigationItem(
                         title = "Home",
@@ -104,10 +107,18 @@ class MainActivity : ComponentActivity() {
                             scrollBehavior = scrollBehavior,
                             actions = {
                                 IconButton(
-                                    onClick = {}
+                                    onClick = {
+                                        navController.navigate(Settings) {
+                                            launchSingleTop = true
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                saveState = true
+                                            }
+                                            restoreState = true
+                                        }
+                                    }
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.baseline_camera_alt_24),
+                                        imageVector = Icons.Outlined.Settings,
                                         contentDescription = "Localized description"
                                     )
                                 }
@@ -140,8 +151,13 @@ class MainActivity : ComponentActivity() {
                                 NavigationBarItem(
                                     selected = selectedItemIndex == index,
                                     onClick = {
-                                        selectedItemIndex = index
-                                        navController.navigate(navDestination[index])
+                                        navController.navigate(navDestination[index]) {
+                                            launchSingleTop = true
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                saveState = true
+                                            }
+                                            restoreState = true
+                                        }
                                     },
                                     label = {
                                         Text(text = item.title)
@@ -169,6 +185,9 @@ class MainActivity : ComponentActivity() {
                         composable<Uploads> {
                             UploadsPage(catViewModel, Modifier.padding(innerPadding))
                         }
+                        composable<Settings> {
+                            SettingsPage(Modifier.padding(innerPadding))
+                        }
                     }
                 }
             }
@@ -190,3 +209,6 @@ object Favorites
 
 @Serializable
 object Uploads
+
+@Serializable
+object Settings
