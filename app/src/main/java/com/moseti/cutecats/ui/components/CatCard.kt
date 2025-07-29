@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.moseti.cutecats.R
@@ -61,8 +62,10 @@ fun CatCard(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(catImage.url)
                     .crossfade(true) // Smooth fade-in animation
+                    .size(512)
+                    .diskCachePolicy(CachePolicy.ENABLED)
                     .build(),
-                contentDescription = "A cute cat",
+                contentDescription = "A cute cat from theCatAPI",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()

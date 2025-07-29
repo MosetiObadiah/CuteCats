@@ -1,6 +1,8 @@
 package com.moseti.cutecats.data
 
 import com.moseti.cutecats.data.local.CatImageDao
+import com.moseti.cutecats.data.local.UserUpload
+import com.moseti.cutecats.data.local.UserUploadDao
 import com.moseti.cutecats.data.remote.CatApiService
 import com.moseti.cutecats.data.remote.dto.CatImage
 import kotlinx.coroutines.flow.Flow
@@ -11,8 +13,21 @@ import javax.inject.Singleton
 @Singleton
 class CatRepository @Inject constructor(
     private val apiService: CatApiService,
-    private val catImageDao: CatImageDao
+    private val catImageDao: CatImageDao,
+    private val userUploadDao: UserUploadDao
 ) {
+
+    /**
+     * Exposes a flow of all user-uploaded images from the local database.
+     */
+    fun getMyUploads(): Flow<List<UserUpload>> = userUploadDao.getAllUploads()
+
+    /**
+     * Saves a user upload record to the local database.
+     */
+    suspend fun saveMyUpload(upload: UserUpload) {
+        userUploadDao.insert(upload)
+    }
 
     /**
      * Fetches a paginated list of cat images from the remote API.

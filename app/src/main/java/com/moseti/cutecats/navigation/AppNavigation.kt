@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,11 +22,9 @@ import kotlinx.serialization.Serializable
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    catViewModel: CatViewModel
 ) {
-    // Shared ViewModel instance scoped to the navigation graph
-    val catViewModel: CatViewModel = hiltViewModel()
-
     NavHost(
         navController = navController,
         startDestination = Home,

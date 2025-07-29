@@ -1,21 +1,50 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# --- Core Kotlin metadata ---
+-keep class kotlin.Metadata { *; }
+-keep class kotlin.coroutines.** { *; }
+-dontwarn kotlin.**
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# --- AndroidX Compose ---
+-keep class androidx.compose.** { *; }
+-dontwarn androidx.compose.**
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# --- Retrofit + Kotlin Serialization ---
+-keep interface retrofit2.** { *; }
+-dontwarn retrofit2.**
+-dontwarn kotlinx.serialization.**
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
+# --- Coil ---
+-dontwarn coil3.**
+-keep class coil3.** { *; }
+-dontwarn okhttp3.**
+-dontwarn okio.**
+
+# --- Hilt / Dagger ---
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep class hilt_aggregated_deps.** { *; }
+-dontwarn dagger.**
+-dontwarn javax.inject.**
+
+# --- Room ---
+-keep class androidx.room.** { *; }
+-dontwarn androidx.room.**
+
+# --- AndroidX Lifecycle/ViewModel ---
+-keep class androidx.lifecycle.** { *; }
+-dontwarn androidx.lifecycle.**
+
+# --- Keep your app's code ---
+-keep class com.moseti.cutecats.** { *; }
+
+# --- Strip Log calls ---
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
+
+# --- Optional: Strip debug info ---
 #-renamesourcefileattribute SourceFile
+#-keepattributes SourceFile,LineNumberTable

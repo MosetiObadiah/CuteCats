@@ -10,11 +10,13 @@ import com.moseti.cutecats.data.remote.dto.CatImage
  * Hilt provides the singleton instance of this database.
  */
 @Database(
-    entities = [CatImage::class],
-    version = 1,
+    entities = [CatImage::class, UserUpload::class],
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class CatDatabase : RoomDatabase() {
     abstract fun catImageDao(): CatImageDao
+
+    abstract fun userUploadDao(): UserUploadDao
 }

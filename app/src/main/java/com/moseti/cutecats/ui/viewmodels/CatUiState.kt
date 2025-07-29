@@ -17,5 +17,7 @@ data class CatUiState(
     val isLoadingInitial: Boolean = false,
     val isLoadingMore: Boolean = false,
     val error: String? = null,
-    val endReached: Boolean = false
+    val endReached: Boolean = false,
+    val isSearchVisible: Boolean = false,
+    val searchQuery: String = ""
 )

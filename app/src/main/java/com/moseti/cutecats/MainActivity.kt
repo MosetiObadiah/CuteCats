@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -26,10 +27,11 @@ import androidx.navigation.compose.rememberNavController
 import com.moseti.cutecats.navigation.AppNavHost
 import com.moseti.cutecats.navigation.Settings
 import com.moseti.cutecats.ui.theme.CuteCatsTheme
+import com.moseti.cutecats.ui.viewmodels.CatViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
 
-@AndroidEntryPoint // This enables field injection in this activity.
+@AndroidEntryPoint // enables field injection in this activity.
 class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -38,9 +40,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CuteCatsTheme {
+                val catViewModel: CatViewModel = hiltViewModel()
                 val navController = rememberNavController()
 
-                // List of top-level navigation items
                 val navItems = remember {
                     listOf(
                         BottomNavItem.Home,
@@ -54,16 +56,41 @@ class MainActivity : ComponentActivity() {
                         TopAppBar(
                             title = { Text("CuteCats") },
                             actions = {
-                                IconButton(onClick = { /* TODO: Implement search */ }) {
+                                IconButton(onClick = {
+                                    catViewModel.toggleSearchVisibility()
+                                }) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.outline_search_24),
                                         contentDescription = "Search"
                                     )
                                 }
-                                IconButton(onClick = { navController.navigate(Settings) }) {
+                                IconButton(
+                                    onClick = {
+                                        navController.navigate(Settings) {
+                                            // Pop up to the start destination of the graph to avoid building up a large back stack
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            // Avoid multiple copies of the same destination when re-selecting the same item
+                                            launchSingleTop = true
+                                            // Restore state when re-selecting a previously selected item
+                                            restoreState = true
+                                        }
+                                    }
+                                ) {
                                     Icon(
                                         painter = painterResource(id = R.drawable.outline_settings_24),
                                         contentDescription = "Settings"
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        /* TODO: Implement side menu */
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.outline_menu_24),
+                                        contentDescription = "Search"
                                     )
                                 }
                             }
@@ -103,15 +130,13 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
-                    // Our centralized navigation logic is called here.
-                    AppNavHost(navController = navController, paddingValues = innerPadding)
+                    AppNavHost(navController = navController, paddingValues = innerPadding, catViewModel = catViewModel)
                 }
             }
         }
     }
 }
 
-// A sealed class is a great way to define bottom navigation items for type safety.
 sealed class BottomNavItem(
     val route: @Serializable Any,
     val titleRes: Int,
