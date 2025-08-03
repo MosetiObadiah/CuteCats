@@ -3,11 +3,11 @@ package com.moseti.cutecats.di
 import android.content.Context
 import androidx.room.Room
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.moseti.cutecats.BuildConfig
 import com.moseti.cutecats.data.CatRepository
 import com.moseti.cutecats.data.local.CatDatabase
 import com.moseti.cutecats.data.local.CatImageDao
 import com.moseti.cutecats.data.local.UserUploadDao
-import com.moseti.cutecats.BuildConfig
 import com.moseti.cutecats.data.remote.CatApiService
 import dagger.Module
 import dagger.Provides
@@ -54,7 +54,7 @@ object AppModule {
             ignoreUnknownKeys = true // Safely ignore properties from the API that are not in our data classes.
         }
         return Retrofit.Builder()
-            .baseUrl("https://api.thedogapi.com/")
+            .baseUrl("https://api.thecatapi.com/")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()

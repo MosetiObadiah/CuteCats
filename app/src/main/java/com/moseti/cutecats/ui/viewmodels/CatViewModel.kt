@@ -102,7 +102,9 @@ class CatViewModel @Inject constructor(
                 val newImages = repository.getNetworkCatImages(page = currentPage, limit = 20)
                 // Add new images to our master list
                 allNetworkImages.addAll(newImages)
+
                 filterImages()
+
                 _uiState.update { currentState ->
                     currentState.copy(
                         images = currentState.images + newImages,
